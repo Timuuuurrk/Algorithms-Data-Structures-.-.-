@@ -1,0 +1,70 @@
+template<typename T1>
+inline bool les(const T1& a, const T1& b) {
+	return a < b;// operator "<" overload
+}
+template<typename T2>
+void merge_sort(vector<T2>& a, int l, int r)//[;)
+{
+	if (l == r - 1)return;
+	int m = (l + r) >> 1;
+	merge_sort(a, l, m);
+	merge_sort(a, m, r);
+	int it1 = l, it2 = m;
+	vector<T2> tmp(r-l);
+	int cnt = -1;
+	while (it1 < m && it2 < r)
+	{
+		if (les(a[it1],a[it2]))
+		{
+			tmp[++cnt]=a[it1];
+			++it1;
+		}
+		else
+		{
+			tmp[++cnt]=a[it2];
+			++it2;
+		}
+	}
+	while (it1 < m)
+	{
+		tmp[++cnt]=a[it1];
+		++it1;
+	}
+	while (it2 < r)
+	{
+		tmp[++cnt]=a[it2];
+		++it2;
+	}
+	for (int i = 0; i < r - l; ++i)
+	{
+		a[l + i] = tmp[i];
+	}
+}
+
+
+template<typename T3>
+void quicksort(vector<T3>& a, int l, int r)//[;)
+{
+	int i = l;
+	int j = r-1;
+	int piv = a[(i + j) >> 1];
+	while (i <= j)
+	{
+		while (les(a[i], piv))++i;
+		while (les(piv, a[j]))--j;
+		if (i <= j)
+		{
+			swap(a[i], a[j]);
+			++i;
+			--j;
+		}
+	}
+	if (j > l)
+	{
+		quicksort(a, l, j+1);
+	}
+	if (i < r-1)
+	{
+		quicksort(a, i, r);
+	}
+}
