@@ -1,4 +1,4 @@
-const ll INF = 1e16;
+const long long INF = 1e16;
 template<typename T>
 bool f(T m)
 {
@@ -7,10 +7,10 @@ bool f(T m)
 	// l=m otherwise
 }
 
-ll bp_int64()
+long long bp_int64()
 {
 
-	ll l = -1, r = INF, m;
+	long long l = -1, r = INF, m;
 	while (r - l > 1)
 	{
 		m = (l + r) >> 1;
@@ -25,7 +25,7 @@ ll bp_int64()
 	}
 	return r;
 }
-double bp_float(ll&cnt)
+double bp_float(long long&cnt)
 {
 	double l = -INF, r = INF, m;
 	while (cnt--)
