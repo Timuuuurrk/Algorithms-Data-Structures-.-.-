@@ -1,0 +1,45 @@
+const ll INF = 1e16;
+template<typename T>
+bool f(T m)
+{
+	//check condition on this value
+	// return 1->take r=m
+	// l=m otherwise
+}
+
+ll bp_int64()
+{
+
+	ll l = -1, r = INF, m;
+	while (r - l > 1)
+	{
+		m = (l + r) >> 1;
+		if (f(m))
+		{
+			r=m;
+		}
+		else
+		{
+			l=m;
+		}
+	}
+	return r;
+}
+double bp_float(ll&cnt)
+{
+	double l = -INF, r = INF, m;
+	while (cnt--)
+	{
+		m = (l + r) / 2;
+		if (f(m))
+		{
+			r = m;
+		}
+		else
+		{
+			l = m;
+		}
+	}
+	return r;
+	//cnt-number of iterations
+}
