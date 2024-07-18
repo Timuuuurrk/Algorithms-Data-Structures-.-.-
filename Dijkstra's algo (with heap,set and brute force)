@@ -1,0 +1,81 @@
+const long long INF = 1e16;
+vector<vector<pair<long long,long long> > > gr;//adjacency lists of pairs {weight,vertex}
+vector<long long> dist,pars;
+void dijkstra_heap(long long st)
+{
+	priority_queue<pair<long long, long long > > A;
+	dist.assign(gr.size(), INF);
+	dist[st] = 0;
+	pars.assign(gr.size(), -1);
+	A.push(make_pair(dist[st], st));
+	while (!A.empty())
+	{
+		pair<long long,long long> tp= A.top();
+		A.pop();
+		long long d = tp.first, v = tp.second;
+		if (d > dist[v])
+		{
+			continue;
+		}
+		for (auto& y : gr[v])
+		{
+			if (dist[y.second] > dist[v] + y.first)
+			{
+				dist[y.second] = dist[v] + y.first;
+				pars[y.second] = v;
+				A.push(make_pair(dist[y.second], y.second));
+			}
+		}
+	}
+}
+void dijkstra_set(long long st)
+{
+	set<pair<long long, long long> > A;
+	dist.assign(gr.size(), INF);
+	pars.assign(gr.size(), -1);
+	dist[st] = 0;
+	A.insert(make_pair(dist[st], st));
+	while (!A.empty())
+	{
+		pair<long long, long long> tp = *A.begin();
+		A.erase(A.begin());
+		long long d = tp.first, v = tp.second;
+		for (auto& y : gr[v])
+		{
+			if (dist[y.second] > dist[v] + y.first)
+			{
+				A.erase(make_pair(dist[y.second], y.second));
+				dist[y.second] = dist[v] + y.first;
+				pars[y.second] = v;
+				A.insert(make_pair(dist[y.second], y.second));
+			}
+		}
+	}
+}
+void dijkstra_brute(long long st)
+{
+	dist.assign(gr.size(), INF);
+	pars.assign(gr.size(), -1);
+	vector<int>usd(gr.size());
+	dist[st] = 0;
+	for (int j = 1; j <= gr.size(); ++j)
+	{
+		int w = -1;
+		for (int u = 0; u < gr.size(); ++u)
+		{
+			if (!usd[u] && (w == -1 || dist[u] < dist[w]))
+			{
+				w = u;
+			}
+		}
+		usd[w] = 1;
+		for (auto& y : gr[w])
+		{
+			if (dist[y.second] > dist[w] + y.first)
+			{
+				dist[y.second] = dist[w] + y.first;
+				pars[y.second] = w;
+			}
+		}
+	}
+}
