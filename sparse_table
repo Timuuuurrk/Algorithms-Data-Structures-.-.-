@@ -1,0 +1,44 @@
+vector<int>logs;
+template<typename T>
+struct sparse_table {
+	vector<vector<T> >table;
+	sparse_table(int n)
+	{
+		logs.resize(n+1);
+		logs[1] = 0;
+		for (int i = 2; i <=n ; ++i)
+		{
+			logs[i] = logs[i >> 1] + 1;
+		}
+		table.resize(logs[n] + 1);
+		for (int i = 0; i < logs[n] + 1; ++i)
+		{
+			table[i].resize(n);
+		}
+	}
+	inline T calc(const T& a, const T& b)
+	{
+		return a < b ? a : b;//idempotent operation
+	}
+	void build(const vector<T>& a)
+	{
+		int n = (int)a.size();
+		for (int i = 0; i < n; ++i)
+		{
+			table[0][i] = a[i];
+		}
+		for (int lvl = 1; (1 << lvl) <= n; ++lvl)
+		{
+			for (int i = 0; i + (1 << lvl) <= n; ++i)
+			{
+				table[lvl][i] = calc(table[lvl - 1][i], table[lvl - 1][i + (1 << (lvl-1))]);//[;]
+			}
+		}
+	}
+	inline T rmq(int l, int r)//[l;r)
+	{
+		int lvl = logs[r - l];
+		return calc(table[lvl][l], table[lvl][r-(1<<lvl)]);
+	}
+};
+using my_sparse = sparse_table<long long>;
