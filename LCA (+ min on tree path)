@@ -1,0 +1,94 @@
+const long long INF = 1e18;
+const long long LOG = 23;
+const long long nmx = 1e5 + 5;
+long long binup[nmx][LOG];
+long long mn[nmx][LOG];
+std::vector<std::pair<long long,long long> > gr[nmx];
+long long d[nmx];
+void dfs(long long v, long long p = 0,long long cost=INF,long long depth=0)
+{
+	d[v] = depth;
+	binup[v][0] = p;
+	mn[v][0] = cost;
+	for (long long i = 1; i < LOG; ++i)
+	{
+		binup[v][i] = binup[binup[v][i - 1]][i - 1];
+		mn[v][i] = std::min(mn[v][i - 1], mn[binup[v][i - 1]][i - 1]);
+	}
+	for (std::pair<long long,long long>& u : gr[v])
+	{
+		if (u.first != p)
+		{
+			dfs(u.first, v,u.second,depth+1);
+		}
+	}
+}
+long long level_anc(long long u, long long k)
+{
+	for (long long i = LOG - 1; i > -1; --i)
+	{
+		if ((1ll << i) & k)
+		{
+			u = binup[u][i];
+		}
+	}
+	return u;
+}
+long long level_min(long long u, long long k)
+{
+	long long ans = INF;
+	for (long long i = LOG - 1; i > -1; --i)
+	{
+		if ((1ll << i) & k)
+		{
+			ans = std::min(ans, mn[u][i]);
+			u = binup[u][i];
+		}
+	}
+	return ans;
+}
+long long lca(long long u, long long v)
+{
+	if (d[u] < d[v])std::swap(u, v);
+	u = level_anc(u, d[u] - d[v]);
+	if (u == v)return v;
+	for (long long i = LOG - 1; i > -1; --i)
+	{
+		if (binup[u][i] != binup[v][i])
+		{
+			u = binup[u][i];
+			v = binup[v][i];
+		}
+	}
+	return binup[u][0];
+}
+inline long long query(long long u, long long v)
+{
+	long long lc = lca(u, v);
+	return std::min(level_min(u, d[u] - d[lc]), level_min(v, d[v] - d[lc]));
+}
+signed main()
+{
+	long long n;
+	std::cin >> n;
+	long long x, y;
+	//filling graph...
+	for (long long i = 1; i < n; ++i)
+	{
+		std::cin >> x >> y;
+		--x;
+		gr[x].push_back({ i,y });
+		gr[i].push_back({ x,y });
+	}
+	//calc binups...
+	dfs(0);
+	long long m;
+	std::cin >> m;
+	//queries...
+	while (m--)
+	{
+		std::cin >> x >> y;
+		--x, --y;
+		std::cout << query(x, y) << '\n';
+	}
+}
