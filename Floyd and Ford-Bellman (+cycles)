@@ -1,0 +1,116 @@
+#include<bits/stdc++.h>
+const long long INF = 1e18;
+const long long LOG = 23;
+const long long nmx = 1e2 + 5;
+long long d[nmx][nmx], p[nmx][nmx], w[nmx][nmx];
+long long bad = INF;
+bool floid(int n)
+{
+	for (int i = 0; i < n; ++i)
+	{
+		for (int j = 0; j < n; ++j)
+		{
+			d[i][j] = w[i][j];
+			if (d[i][j] == bad)//edge {i->j} doesn't exist
+			{
+				d[i][j] = INF;
+			}
+			p[i][j] = -1;
+		}
+	}
+	for (int k = 0; k < n; ++k)
+	{
+		for (int i = 0; i < n; ++i)
+		{
+			for (int j = 0; j < n; ++j)
+			{
+				if (d[i][k] == INF || d[k][j] == INF)continue;
+				if (d[i][k] + d[k][j] < d[i][j])
+				{
+					d[i][j] = d[i][k] + d[k][j];
+					p[i][j] = k;
+				}
+			}
+		}
+	}
+	for (int i = 0; i < n; ++i)
+	{
+		if (d[i][i] < 0)
+		{
+			return 1;
+		}
+	}
+	return 0;//doesn't found cycle <0
+}
+struct edge
+{
+	long long fr;
+	long long to;
+	long long cost;
+	edge(long long n1, long long n2, long long wei) :fr(n1), to(n2), cost(wei) {}
+};
+std::vector<edge> Edgs;
+std::vector<long long> dist;
+std::vector<long long>anc;
+std::vector<long long> ford(int n, int st = 0,bool fl=0)//fl to goal- (1 - find cycles, 0 - calc paths from "st" vertex)
+{
+	dist.resize(n, INF);
+	anc.resize(n, -1);
+	dist[st] = 0;
+	long long from, t, c;
+	std::vector<long long>cycl;//to detect negative cycles
+	for (int k = 1; k <= n; ++k)
+	{
+		for (edge& cur : Edgs)
+		{
+			from = cur.fr;
+			t = cur.to;
+			c = cur.cost;
+			if ((dist[from]!=INF||fl)&&dist[from] + c < dist[t])
+			{
+				dist[t] = dist[from] + c;
+				anc[t] = from;
+				if (k == n)
+				{
+					for (int i = 0; i < n; ++i)
+					{
+						t = anc[t];
+					}
+					cycl.push_back(t);
+					int save = t;
+					t = anc[t];
+					while (t != save)
+					{
+						cycl.push_back(t);
+						t = anc[t];
+					}
+          std::reverse(cycl.begin(), cycl.end());
+					return cycl;
+				}
+			}
+		}
+	}
+	return cycl;//doesn't found cycle <0
+
+}
+void matrix_to_edges(int n)
+{
+	for (int i = 0; i < n; ++i)
+	{
+		for (int j = 0; j < n; ++j)
+		{
+			if (w[i][j] != bad)
+			{
+				Edgs.push_back(edge(i, j, w[i][j]));
+			}
+		}
+	}
+}
+signed main()
+{
+	long long n;
+	//graph filling...
+	std::vector<long long> cycle = ford(n,0,1);
+  bool neg_cycle=floid(n);
+	return 0;
+}
