@@ -1,0 +1,145 @@
+const long long INF = 1e18;
+const long long LOG = 23;
+const long long nmx = 1e2 + 5;
+std::vector<long long>d, p;
+void init(long long n)
+{
+	d.resize(n);
+	p.resize(n);
+	std::iota(p.begin(), p.end(), 0);
+}
+long long get_par(long long v)
+{
+	if (p[v] == v)return v;
+	return p[v] = get_par(p[v]);
+}
+void unite(long long u, long long v)
+{
+	u = get_par(u);
+	v = get_par(v);
+	if (u == v)return;
+	if (d[u] > d[v])std::swap(u, v);
+	p[u] = v;
+	if (d[u] == d[v])++d[v];
+}
+///   ^
+///   |      Disjoint Set's Union
+///   |
+
+long long min_c1, min_c2;
+struct edge
+{
+	long long f;
+	long long to;
+	long long wei;
+	edge(long long n1,long long n2,long long c):f(n1),to(n2),wei(c){}
+};
+std::vector<edge>Edgs;
+std::vector<edge> MST_Kruskal(long long n)
+{
+	init(n);
+	std::sort(Edgs.begin(), Edgs.end(), [](const edge& a, const edge& b) {return a.wei < b.wei; });
+	min_c1 = 0;
+	std::vector<edge> ans;
+	for (edge& kek : Edgs)
+	{
+		if (get_par(kek.f) != get_par(kek.to))
+		{
+			unite(kek.f, kek.to);
+			min_c1 += kek.wei;
+			ans.push_back(kek);
+		}
+	}
+	return ans;
+}
+///    ^
+///    |     Kruskal's algorithm to find MST
+///    |
+///    |
+std::vector<long long> usd, min_edge, anc;
+std::vector<std::vector<std::pair<long long, long long> > > gr;
+bool MST_PrimSQR(long long n)//O(n^2)
+{
+	usd.resize(n);
+	min_edge.resize(n, INF);
+	anc.resize(n, -1);
+	min_edge[0] = 0;//start vertex
+	min_c2 = 0;
+	long long to, cost,w;
+	for (int i = 0; i < n; ++i)
+	{
+		w = -1;
+		for (int j = 0; j < n; ++j)
+		{
+			if (!usd[j] && (w == -1 || min_edge[j] < min_edge[w]))
+			{
+				w = j;
+			}
+		}
+		if (min_edge[w] == INF)return 0;//No MST!
+		usd[w] = 1;
+		min_c2 += min_edge[w];
+		for (auto& e : gr[w])
+		{
+			to = e.first, cost = e.second;
+			if (!usd[to] && cost < min_edge[to])
+			{
+				min_edge[to] = cost;
+				anc[to] = w;
+			}
+		}
+	}
+	return 1;
+}
+bool MST_PrimSET(long long n)// O(mlogn)
+{
+	min_edge.resize(n, INF);
+	min_c2 = 0;
+	usd.resize(n);
+	anc.resize(n, -1);
+	std::set<std::pair<long long, long long> > q;
+	min_edge[0] = 0;
+	q.insert({ min_edge[0],0 });// start vertex
+	long long to, cost,v;
+	while (!q.empty())
+	{
+		v = q.begin()->second;
+		min_c2 += min_edge[v];
+		q.erase(q.begin());
+		usd[v] = 1;
+		for (auto& e : gr[v])
+		{
+			to = e.first, cost = e.second;
+			if (!usd[to] && cost < min_edge[to])
+			{
+				q.erase({ min_edge[to],to });
+				min_edge[to] = cost;
+				anc[to] = v;
+				q.insert({ min_edge[to],to });
+			}
+		}
+	}
+	if (*std::max_element(min_edge.begin(), min_edge.end()) == INF)return 0;//No MST!
+	return 1;
+}
+///    ^
+///    |          Prim's algorithm to find MST (similar's with Dijkstra's algo)
+///    |
+///    |
+signed main()
+{
+	long long n, m, a, b, c;
+	std::cin >> n >> m;
+	gr.resize(n);
+	for (int i = 0; i < m; ++i)
+	{
+		std::cin >> a >> b >> c;
+		--a, --b;
+		gr[a].push_back({ b,c });
+		gr[b].push_back({ a,c });
+	}
+	bool have_MST = MST_PrimSET(n);
+	std::cout << min_c2 << '\n';
+	std::vector<edge>mst = MST_Kruskal(n);
+	std::cout << min_c1 << '\n';
+}
