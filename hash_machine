@@ -1,0 +1,95 @@
+std::mt19937_64 gen64((uint64_t)(std::chrono::high_resolution_clock::now().time_since_epoch().count())| (uint64_t)(std::make_unique<char>().get()));
+const long long INF = 1e18;
+const long long LOG = 23;
+const long long nmx = 2e5 + 5;
+//
+long long cnt = 3;  // how much hashes do u need
+//
+std::vector<long long> muls = { 179,211,181, 191, 193, 197, 199, 223, 239};
+std::vector<long long>mods = { 1000000007,1000000009,1000000123,1000000321 };
+std::vector<std::vector<long long> > pows;
+std::vector<long long>bind;
+inline long long mul(long long a, long long b, long long m) { return 1ll * a * b % m;}
+inline long long sub(long long a, long long b, long long m)
+{
+    if (a - b < 0)
+    {
+        return a - b + m;
+    }
+    return a - b;
+}
+inline long long add(long long a, long long b, long long m)
+{
+    if (a + b >= m)return a + b - m;
+    return a + b;
+}
+void calc_pows()
+{
+    pows = std::vector<std::vector<long long> >(cnt, std::vector<long long>(nmx));
+    bind.resize(cnt);
+    long long buf;
+    for (int i = 0; i < cnt; ++i)
+    {
+        pows[i][0] = 1;
+        buf = gen64() % muls.size();
+        pows[i][1] = muls[buf];
+        muls.erase(muls.begin() + buf);
+        buf = gen64() % mods.size();
+        bind[i] = mods[buf];
+        mods.erase(mods.begin() + buf);
+        for (int j = 2; j < nmx; ++j)
+        {
+            pows[i][j] = mul(pows[i][j - 1], pows[i][1], bind[i]);
+        }
+    }
+}
+std::vector<std::vector<long long> >  precalc(const std::string& a)
+{
+    int n = a.size();
+   std::vector<std::vector<long long> >hashes(cnt, std::vector<long long>(n+1));
+    for (int i = 0; i < cnt; ++i)
+    {
+        for (int j = 1; j <= n; ++j)
+        {
+            hashes[i][j] = add(mul(hashes[i][j - 1], pows[i][1], bind[i]), a[j - 1], bind[i]);
+        }
+    }
+    return hashes;
+}
+std::vector<long long> subhash(long long l, long long r, const std::vector<std::vector<long long> >& h)           //[l;r] and 0 indexation
+{
+    std::vector<long long>ans(cnt);
+    long long L, R;
+    for (int i = 0; i < cnt; ++i)
+    {
+        R = h[i][r + 1];
+        L = h[i][l] * pows[i][r - l + 1] % bind[i];
+        ans[i] = sub(R, L, bind[i]);
+    }
+    return ans;
+}
+signed main()
+{
+    std::cin.tie(0)->sync_with_stdio(0);
+    std::string s;
+    std::cin >> s;
+    int m;
+    std::cin >> m;
+    calc_pows();
+    std::vector<std::vector<long long> > h1 = precalc(s);
+    while (m--)//queries
+    {
+        int a, b, c, d;
+        std::cin >> a >> b >> c >> d;
+        --a, --b, --c, --d;
+        std::vector<long long> n1 = subhash(a, b, h1), n2 = subhash(c, d, h1);      // check s[a;b]=s[c;d]
+        if (n1 == n2)
+        {
+            std::cout << "Yes\n";
+        }
+        else
+        {
+            std::cout << "No\n";
+        }
+    }
+}
