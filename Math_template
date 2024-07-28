@@ -1,0 +1,149 @@
+/*
+list:
+1.extended euclidian algorithm
+2. Diophantine equation solution (with Euclidian extended)
+3. lcm(a,b)=a*b/gcd(a,b)
+4. Inversed by modulo m (with ext. Euclid)
+5. factorization O(sqrt(n))
+6. Binary Exponentiation
+7. Sieve of Eratosphenes (linear and O(nlog(logn)) )
+8. Garner's algorithm (to solve Chinese Remainder Theorem)
+*/
+
+
+long long gcd_ext(long long a, long long b, long long& x, long long& y)
+{
+	if (a == 0)
+	{
+		x = 0, y = 1;
+		return b;
+	}
+	long long x1, y1;
+	long long d = gcd_ext(b % a, a, x1, y1);
+	x = y1 - (b / a) * x1;
+	y = x1;
+	return d;
+}
+bool Diophantine_eq(long long A, long long B,long long C,long long&x,long long&y)
+{
+	long long x0, y0;
+	long long d = gcd_ext(A, B, x0, y0);
+	x = C * x0 / d;
+	y = C * y0 / d;
+	if (C % d != 0)return 0;//no solutions
+	return 1;// other solutions:
+	// x'=x+B*t/d
+	// y'=y-A*t/d  t= any integer
+}
+inline long long lcm(long long a, long long b)
+{
+	long long x, y;
+	long long d = gcd_ext(a, b, x, y);
+	return a / d * b;
+}
+bool inv(long long a, long long m,long long&res)
+{
+	long long x, y, d;
+	d = gcd_ext(a, m, x, y);
+	res = x;
+	if (d != 1)return 0;// doesn't exist
+	return 1;//exist
+}
+std::vector<long long> fact(long long k)
+{
+	std::vector<long long>ans;
+	for (long long i = 2; i * i <= k; ++i)
+	{
+		while (k % i == 0)
+		{
+			ans.push_back(i);
+			k /= i;
+		}
+	}
+	if (k > 1)
+	{
+		ans.push_back(k);
+	}
+	return ans;
+}
+template<typename T>
+T binpow(T a, long long n, long long m = -1)//m=-1 ->dont need remainder taking
+{
+	if (n == 0)return 1;
+	T u = modpow(a, n / 2, m);
+	if (m != -1)
+	{
+		u = (u * u) % m;
+	}
+	if (n % 2 == 1)u *= a;
+	if (m != -1)u %= m;
+	return u;
+}
+const long long nmx = 2e5 + 5;
+std::vector<long long> sieve_slow(long long n)
+{
+	//primes <=n
+	std::bitset<nmx> primes;
+	std::vector<long long> ans;
+	primes[0] = primes[1] = 1;
+	for (long long i = 2; i * i <= n; ++i)
+	{
+		if (primes[i] == 0)
+		{
+			for (long long j = i * i; j <= n; j += i)
+			{
+				primes[j] = 1;
+			}
+		}
+	}
+	for (long long i = 2; i <= n; ++i)
+	{
+		if (primes[i] == 0)
+		{
+			ans.push_back(i);
+		}
+	}
+	return ans;
+}
+std::vector<long long> sieve_linear(std::vector<long long>& lp, long long n)
+{
+	std::vector<long long>pr;
+	lp.resize(n + 1);
+	for (long long i = 2; i <= n; ++i)
+	{
+		if (lp[i] == 0)
+		{
+			lp[i] = i;
+			pr.push_back(i);
+		}
+		for (long long j = 0; j < pr.size() && pr[j] <= lp[i] && i * pr[j] <= n; ++j)
+		{
+			lp[i * pr[j]] = pr[j];
+		}
+	}
+	return pr;
+}
+bool CRT(const std::vector<long long>& p,const std::vector<long long>& a, std::vector<long long>& x)
+{
+	long long m = p.size();
+	std::vector<std::vector<long long> > r(m, std::vector<long long>(m));
+	for (long long i = 0; i < m; ++i)
+	{
+		for (long long j = i + 1; j < m; ++j)
+		{
+			bool fl = inv(p[i], p[j], r[i][j]);
+			if (fl == 0)return 0;// inverse doesn't exist -> CRT doesn't usable
+		}
+	}
+	for (long long i = 0; i < m; ++i)
+	{
+		x[i] = a[i];
+		for (long long j = 0; j < i; ++j)
+		{
+			x[i] = r[j][i] * (x[i] - x[j]);
+			x[i] %= p[i];
+			if (x[i] < 0)x[i] += p[i];
+		}
+	}
+	return 1;
+}
