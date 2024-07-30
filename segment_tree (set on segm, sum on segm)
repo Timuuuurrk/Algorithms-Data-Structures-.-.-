@@ -1,0 +1,94 @@
+long long nmx = 1e5 + 5;
+const long long INF = 1e18;
+const long long neutral = 0;
+template<typename T>
+struct node
+{
+	T set;
+	T func;
+	bool fl;
+	node() {
+		fl = 0;
+		func = 0;
+	}
+	node(T kek) :func(kek), fl(0) {}
+};
+template<typename T>
+struct segment_tree
+{
+	using mnode = node<T>;
+	std::vector<mnode>DO;
+	segment_tree() {}
+	segment_tree(long long n)
+	{
+		DO.resize(4 * n);
+	}
+	inline T  op_func(T a, T b)
+	{
+		return a + b;
+	}
+	inline T op_modify(T a, T b, long long len, bool fl)
+	{
+		if (fl == 0)return a;
+		return b * len;// set value on segment and sum on segment
+	}
+	void build(const std::vector<T>& a, long long v, long long l, long long r)
+	{
+		if (l == r - 1)
+		{
+			DO[v] = mnode(a[l]);
+			return;
+		}
+		long long m = (l + r) >> 1;
+		build(a, 2 * v + 1, l, m);
+		build(a, 2 * v + 2, m, r);
+		DO[v].func = op_func(DO[2 * v + 1].func, DO[2 * v + 2].func);
+	}
+	void push(long long v, long long l, long long r)
+	{
+		if (DO[v].fl == 0 || l == r - 1)return;
+		long long m = (l + r) >> 1;
+		DO[2 * v + 1].set = op_modify(DO[2 * v + 1].set, DO[v].set, 1ll, DO[v].fl);
+		DO[2 * v + 1].func = op_modify(DO[2 * v + 1].func, DO[v].set, m - l, DO[v].fl);
+		DO[2 * v + 2].set = op_modify(DO[2 * v + 2].set, DO[v].set, 1ll, DO[v].fl);
+		DO[2 * v + 2].func = op_modify(DO[2 * v + 2].func, DO[v].set, r - m, DO[v].fl);
+		DO[2 * v + 1].fl = DO[2 * v + 2].fl = 1;
+		DO[v].fl = 0;
+	}
+	void modify(long long v, long long l, long long r, long long tl, long long tr, T val)
+	{
+		if (l >= tr || r <= tl)return;
+		if (l >= tl && r <= tr)
+		{
+			DO[v].fl = 1;
+			DO[v].set = op_modify(DO[v].set, val, 1ll, 1);
+			DO[v].func = op_modify(DO[v].func, val, r - l, 1);
+			return;
+		}
+		push(v, l, r);
+		long long m = (l + r) >> 1;
+		modify(2 * v + 1, l, m, tl, tr, val);
+		modify(2 * v + 2, m, r, tl, tr, val);
+		DO[v].func = op_func(DO[2 * v + 1].func, DO[2 * v + 2].func);
+	}
+	T calc(long long v, long long l, long long r, long long tl, long long tr)
+	{
+		push(v, l, r);
+		if (l >= tr || r <= tl)return neutral;
+		if (l >= tl && r <= tr)return DO[v].func;
+		long long m = (l + r) >> 1;
+		return op_func(calc(2 * v + 1, l, m, tl, tr), calc(2 * v + 2, m, r, tl, tr));
+	}
+	void out(long long v, long long l, long long r)
+	{
+		if (l == r - 1)
+		{
+			std::cout << DO[v].func << " ";
+		}
+		long long m = (l + r) >> 1;
+		push(v, l, r);
+		out(2 * v + 1, l, m);
+		out(2 * v + 2, m, r);
+	}
+};
+using mseg = segment_tree<long long>;
