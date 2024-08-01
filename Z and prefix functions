@@ -1,0 +1,54 @@
+std::vector<long long> Z_fast(const std::string& a)
+{
+	int n = a.size();
+	std::vector<long long> z(n);
+	long long l =0, r = 0;
+	for (int i = 1; i < n; ++i)
+	{
+		if (i <= r)
+		{
+			z[i] = std::min(z[i - l], r - i + 1);
+		}
+		while (i + z[i] < n && a[z[i]] == a[i + z[i]]) {
+			++z[i];
+		}
+		if (i + z[i] > r)
+		{
+			l = i, r = i + z[i] - 1;
+		}
+	}
+	return z;
+}
+std::vector<long long> pref_fast(const std::string& a)
+{
+	int n = a.size();
+	std::vector<long long>pref(n + 1);
+	pref[0] = -1;
+	long long k;
+	for (int i = 1; i <= n; ++i)
+	{
+		k = pref[i - 1];
+		while (k >= 0)
+		{
+			if (a[k] == a[i - 1])
+			{
+				break;
+			}
+			k = pref[k];
+		}
+		pref[i] = k + 1;
+	}
+	return pref;
+}
+int main()
+{
+	std::cin.tie(0)->sync_with_stdio(0);
+	std::string a;
+	std::getline(std::cin, a);
+	std::vector<long long>z = Z_fast(a);
+	for (auto& y : z)
+	{
+		std::cout << y << " ";
+	}
+	return 0;
+}
