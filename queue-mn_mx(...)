@@ -1,0 +1,79 @@
+template<typename T>
+inline T op(const T& a, const T& b)
+{
+	return std::min(a, b);
+}
+template<typename T>
+struct StackMn
+{
+	std::stack<std::pair<T, T> > S;
+	T bad = 1e18;
+	inline void push(T x)
+	{
+		S.push(std::make_pair(x, op(x, minn())));
+	}
+	inline T minn()
+	{
+		if (!S.empty()) {
+			return S.top().second;
+		}
+		return bad;
+	}
+	inline void pop()
+	{
+		if (!S.empty())
+		{
+			S.pop();
+		}
+	}
+	inline T top()
+	{
+		return S.top().first;
+	}
+	inline long long sz()
+	{
+		return S.size();
+	}
+	inline bool empt()
+	{
+		return S.empty();
+	}
+};
+template<typename T>
+struct QueueMN
+{
+	using MStack = StackMn<T>;
+	MStack s1, s2;// [s2,s1]
+	long long siz()
+	{
+		return s1.sz() + s2.sz();
+	}
+	void move()
+	{
+		while (!s1.empt())
+		{
+			s2.push(s1.top());
+			s1.pop();
+		}
+	}
+	void push(T x)
+	{
+		s1.push(x);
+	}
+	void pop()
+	{
+		if (s2.empt())
+		{
+			move();
+		}
+		s2.pop();
+	}
+	inline bool emp()
+	{
+		return s1.empt() && s2.empt();
+	}
+	inline T mi()
+	{
+		return op(s1.minn(), s2.minn());
+	}
+};
